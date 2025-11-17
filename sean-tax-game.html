@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sean's Tax-Compliant Money Maximizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header {
+            background: #0f3460;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #16213e;
+        }
+
+        #stats {
+            display: flex;
+            gap: 30px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #admin-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .arrow-btn {
+            background: #e94560;
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+
+        .arrow-btn:hover {
+            background: #ff6b6b;
+        }
+
+        #game-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .game-title {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #e94560;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .game-instruction {
+            font-size: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        #canvas {
+            border: 3px solid #16213e;
+            background: white;
+            max-width: 100%;
+        }
+
+        .btn {
+            background: #e94560;
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 10px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+        }
+
+        #dialogue-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
+        }
+
+        #dialogue-container.two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 900px;
+        }
+
+        .dialogue-option {
+            background: #16213e;
+            border: 2px solid #0f3460;
+            color: #eee;
+            padding: 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .dialogue-option:hover {
+            background: #0f3460;
+            border-color: #e94560;
+            transform: translateX(10px);
+        }
+
+        #dialogue-container.two-column .dialogue-option:hover {
+            transform: scale(1.05);
+        }
+
+        #receipt-container {
+            background: white;
+            color: black;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .receipt-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .receipt-total {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid black;
+        }
+
+        #food-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            gap: 20px;
+        }
+
+        .food-item {
+            width: 150px;
+            height: 150px;
+            background: #16213e;
+            border: 3px solid #0f3460;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            transition: all 0.2s;
+        }
+
+        .food-item:hover {
+            border-color: #e94560;
+            transform: scale(1.1);
+        }
+
+        .food-item.selected {
+            background: #e94560;
+            border-color: #ff6b6b;
+        }
+
+        .food-label {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        #selected-combo {
+            margin-top: 30px;
+            font-size: 24px;
+            min-height: 60px;
+        }
+
+        .warning {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px;
+            text-align: center;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .game-over {
+            font-size: 72px;
+            color: #e94560;
+            text-align: center;
+            margin: 40px;
+        }
+
+        #city-select {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .city-card {
+            background: #16213e;
+            border: 3px solid #0f3460;
+            padding: 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 200px;
+        }
+
+        .city-card:hover {
+            border-color: #e94560;
+            transform: translateY(-10px);
+        }
+
+        .city-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .city-name {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #e94560;
+        }
+
+        .city-price {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="header">
+            <div id="stats">
+                <div style="font-size: 24px; color: #FFD700; font-weight: bold;">💎 TOTAL: $<span id="total-money">0</span></div>
+                <div>💰 Cash: $<span id="money">0</span></div>
+                <div>🏠 Assets: $<span id="assets">0</span></div>
+                <div>📍 <span id="city">Nowheresville</span></div>
+                <div>⚠️ Warnings: <span id="warnings">0</span>/3</div>
+            </div>
+            <div id="admin-controls">
+                <button class="arrow-btn" onclick="game.addTestMoney(500)">+$500</button>
+                <button class="arrow-btn" onclick="game.addTestMoney(10000)">+$10k</button>
+                <button class="arrow-btn" onclick="game.previousEvent()">◀</button>
+                <button class="arrow-btn" onclick="game.nextEvent()">▶</button>
+            </div>
+        </div>
+        <div id="game-screen"></div>
+    </div>
+
+    <script>
+        const game = {
+            money: 0,
+            assets: 0,
+            warnings: 0,
+            city: 'Nowheresville',
+            houseValue: 0,
+            currentEventIndex: 0,
+            dayEarnings: [],
+            eventSequence: [],
+            taxesReported: true,
+
+            cities: [
+                { name: 'Nowheresville', houseCost: 0 },
+                { name: 'Smalltown', houseCost: 50000 },
+                { name: 'Mediumcity', houseCost: 200000 },
+                { name: 'Bigville', houseCost: 500000 },
+                { name: 'Metropolis', houseCost: 1000000 },
+                { name: 'Six Figuresville', houseCost: 5000000 }
+            ],
+
+            init() {
+                this.showStartScreen();
+            },
+
+            showStartScreen() {
+                const screen = document.getElementById('game-screen');
+                screen.innerHTML = `
+                    <div class="game-title" style="font-size: 72px;">💰 Sean's Tax Game 💰</div>
+                    <div class="game-instruction" style="font-size: 24px; margin: 30px;">
+                        Make as much money as possible while reporting<br>
+                        EVERY source of income to the IRS!<br><br>
+                        <span style="color: #e94560;">⚠️ 3 strikes and you go to jail! ⚠️</span>
+                    </div>
+                    <button class="btn" style="font-size: 32px; padding: 20px 60px;" onclick="game.startGame()">START GAME</button>
+                `;
+            },
+
+            startGame() {
+                this.setupDay();
+                this.updateStats();
+                this.updateBackground();
+                this.showEvent();
+            },
+
+            setupDay() {
+                // Define all possible activities
+                const allActivities = [
+                    { type: 'morning', name: 'Morning Routine' },
+                    { type: 'lunch', name: 'Lunch Combo Creator' },
+                    { type: 'subway', name: 'Subway Ball Hunt' },
+                    { type: 'rhythm', name: 'Coffee Making Rhythm' },
+                    { type: 'icecream', name: 'Ice Cream Maze' },
+                    { type: 'dating', name: 'Date Night' },
+                    { type: 'dinner', name: 'Dinner Date' },
+                    { type: 'tutoring', name: 'Math Tutoring' }
+                ];
+
+                // Randomly select 3 activities
+                const shuffled = [...allActivities].sort(() => Math.random() - 0.5);
+                const selectedActivities = shuffled.slice(0, 3);
+
+                this.eventSequence = [
+                    ...selectedActivities,
+                    { type: 'taxes', name: 'File Your Taxes' }
+                ];
+            },
+
+            nextEvent() {
+                this.currentEventIndex++;
+                if (this.currentEventIndex >= this.eventSequence.length) {
+                    this.currentEventIndex = 0;
+                    this.dayEarnings = [];
+                    this.setupDay();
+                }
+                this.showEvent();
+            },
+
+            previousEvent() {
+                this.currentEventIndex--;
+                if (this.currentEventIndex < 0) {
+                    this.currentEventIndex = this.eventSequence.length - 1;
+                }
+                this.showEvent();
+            },
+
+            addTestMoney(amount) {
+                this.money += amount;
+                document.getElementById('money').textContent = this.money;
+            },
+
+            updateBackground() {
+                const backgrounds = {
+                    'Nowheresville': 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                    'Smalltown': 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+                    'Mediumcity': 'linear-gradient(135deg, #283593 0%, #3949ab 100%)',
+                    'Bigville': 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+                    'Metropolis': 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%)',
+                    'Six Figuresville': 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #ffed4e 100%)'
+                };
+                document.body.style.background = backgrounds[this.city] || backgrounds['Nowheresville'];
+            },
+
+            showEvent() {
+                const event = this.eventSequence[this.currentEventIndex];
+                const screen = document.getElementById('game-screen');
+                screen.innerHTML = '';
+
+                switch(event.type) {
+                    case 'morning':
+                        this.showMorningGame(screen);
+                        break;
+                    case 'lunch':
+                        this.showLunchGame(screen);
+                        break;
+                    case 'subway':
+                        this.showSubwayGame(screen);
+                        break;
+                    case 'rhythm':
+                        this.showRhythmGame(screen);
+                        break;
+                    case 'icecream':
+                        this.showIceCreamMaze(screen);
+                        break;
+                    case 'dating':
+                        this.showDatingGame(screen);
+                        break;
+                    case 'dinner':
+                        this.showDinnerGame(screen);
+                        break;
+                    case 'tutoring':
+                        this.showTutoringGame(screen);
+                        break;
+                    case 'taxes':
+                        this.showTaxGame(screen);
+                        break;
+                }
+            },
+
+            showMorningGame(screen) {
+                const allPhrases = [
+                    'quickly wear my favorite blue shirt',
+                    'struggle into tight pants awkwardly',
+                    'vigorously brush teeth with minty toothpaste',
+                    'brew strong coffee in the kitchen',
+                    'microwave leftover pizza for breakfast',
+                    'frantically search everywhere for keys',
+                    'zip up warm jacket before leaving'
+                ];
+
+                // Randomly select 3-5 phrases
+                const numPhrases = 3 + Math.floor(Math.random() * 3); // 3, 4, or 5
+                const phrases = [];
+                const usedIndices = new Set();
+
+                while (phrases.length < numPhrases) {
+                    const idx = Math.floor(Math.random() * allPhrases.length);
+                    if (!usedIndices.has(idx)) {
+                        usedIndices.add(idx);
+                        phrases.push(allPhrases[idx]);
+                    }
+                }
+
+                let currentPhraseIndex = 0;
+                let currentPhrase = phrases[currentPhraseIndex];
+                let typedText = '';
+                let cursorPosition = 0; // Track cursor position
+                let startTime = null;
+                let gameStartTime = null;
+                let timerStarted = false;
+                let totalScore = 0;
+
+                screen.innerHTML = `
+                    <div class="game-title">⏰ Morning Routine</div>
+                    <div class="game-instruction">Type the phrases as fast as you can! Click to position cursor.</div>
+                    <div style="background: white; color: black; padding: 40px; border-radius: 10px; margin: 20px; min-width: 700px;">
+                        <div style="font-size: 32px; margin-bottom: 20px; color: #666;">Type this:</div>
+                        <div id="target-phrase" style="font-size: 40px; margin-bottom: 30px; font-weight: bold;">${currentPhrase}</div>
+                        <div style="font-size: 32px; margin-bottom: 10px; color: #666;">You typed:</div>
+                        <div id="typed-text" style="font-size: 40px; min-height: 50px; border-bottom: 3px solid #333; position: relative; cursor: text;"></div>
+                    </div>
+                    <div style="margin-top: 20px; font-size: 24px;">
+                        Time: <span id="game-timer">0.0</span>s |
+                        Phrases: <span id="phrase-count">0</span>/${phrases.length} |
+                        Score: $<span id="morning-score">0</span>
+                    </div>
+                `;
+
+                // Update timer (starts at 0 until first key pressed)
+                const timerInterval = setInterval(() => {
+                    if (!timerStarted) {
+                        return; // Don't update timer until first key press
+                    }
+                    const elapsed = ((Date.now() - gameStartTime) / 1000).toFixed(1);
+                    const timerEl = document.getElementById('game-timer');
+                    if (timerEl) {
+                        timerEl.textContent = elapsed;
+                    } else {
+                        clearInterval(timerInterval);
+                    }
+                }, 100);
+
+                const updateDisplay = () => {
+                    const targetDiv = document.getElementById('target-phrase');
+                    const typedDiv = document.getElementById('typed-text');
+
+                    let html = '';
+                    const maxLen = Math.max(currentPhrase.length, typedText.length);
+
+                    for (let i = 0; i < maxLen; i++) {
+                        if (i === cursorPosition) {
+                            // Add cursor at this position
+                            html += `<span style="border-left: 3px solid #e94560; animation: blink 1s infinite; padding-left: 2px;" data-pos="${i}"></span>`;
+                        }
+
+                        if (i < typedText.length) {
+                            if (i < currentPhrase.length) {
+                                if (typedText[i] === currentPhrase[i]) {
+                                    html += `<span style="color: green;" data-pos="${i}">${typedText[i] === ' ' ? '&nbsp;' : typedText[i]}</span>`;
+                                } else {
+                                    html += `<span style="color: red;" data-pos="${i}">${typedText[i] === ' ' ? '&nbsp;' : typedText[i]}</span>`;
+                                }
+                            } else {
+                                html += `<span style="color: red;" data-pos="${i}">${typedText[i] === ' ' ? '&nbsp;' : typedText[i]}</span>`;
+                            }
+                        }
+                    }
+
+                    // If cursor is at the end
+                    if (cursorPosition === typedText.length) {
+                        html += `<span style="border-left: 3px solid #e94560; animation: blink 1s infinite;" data-pos="${cursorPosition}">&nbsp;</span>`;
+                    }
+
+                    typedDiv.innerHTML = html || '<span style="border-left: 3px solid #e94560; animation: blink 1s infinite;" data-pos="0">&nbsp;</span>';
+                };
+
+                const keyHandler = (e) => {
+                    // Start timer on first key press
+                    if (!timerStarted) {
+                        timerStarted = true;
+                        gameStartTime = Date.now();
+                        startTime = Date.now();
+                    }
+
+                    if (e.key === 'Backspace') {
+                        e.preventDefault();
+                        if (cursorPosition > 0) {
+                            typedText = typedText.slice(0, cursorPosition - 1) + typedText.slice(cursorPosition);
+                            cursorPosition--;
+                            updateDisplay();
+                        }
+                    } else if (e.key === 'Delete') {
+                        e.preventDefault();
+                        if (cursorPosition < typedText.length) {
+                            typedText = typedText.slice(0, cursorPosition) + typedText.slice(cursorPosition + 1);
+                            updateDisplay();
+                        }
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        if (cursorPosition > 0) {
+                            cursorPosition--;
+                            updateDisplay();
+                        }
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        if (cursorPosition < typedText.length) {
+                            cursorPosition++;
+                            updateDisplay();
+                        }
+                    } else if (e.key === 'Home') {
+                        e.preventDefault();
+                        cursorPosition = 0;
+                        updateDisplay();
+                    } else if (e.key === 'End') {
+                        e.preventDefault();
+                        cursorPosition = typedText.length;
+                        updateDisplay();
+                    } else if (e.key.length === 1) {
+                        // Insert character at cursor position
+                        typedText = typedText.slice(0, cursorPosition) + e.key + typedText.slice(cursorPosition);
+                        cursorPosition++;
+                        updateDisplay();
+
+                        // Check if phrase is complete
+                        if (typedText === currentPhrase) {
+                            const timeElapsed = (Date.now() - startTime) / 1000;
+                            const baseScore = 200;
+                            const timeBonus = Math.max(0, Math.floor((10 - timeElapsed) * 20));
+                            const phraseScore = baseScore + timeBonus;
+                            totalScore += phraseScore;
+
+                            document.getElementById('morning-score').textContent = totalScore;
+
+                            currentPhraseIndex++;
+                            document.getElementById('phrase-count').textContent = currentPhraseIndex;
+
+                            if (currentPhraseIndex >= phrases.length) {
+                                document.removeEventListener('keydown', keyHandler);
+                                clearInterval(timerInterval);
+                                const finalTime = ((Date.now() - gameStartTime) / 1000).toFixed(1);
+                                game.addEarnings('Morning Productivity Bonus', totalScore);
+                                setTimeout(() => {
+                                    screen.innerHTML = `
+                                        <div class="game-title">Morning Complete!</div>
+                                        <div class="game-instruction">Completed in ${finalTime}s!<br>You earned $${totalScore} for being productive!</div>
+                                        <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                                    `;
+                                }, 500);
+                            } else {
+                                currentPhrase = phrases[currentPhraseIndex];
+                                typedText = '';
+                                cursorPosition = 0;
+                                startTime = Date.now();
+                                document.getElementById('target-phrase').textContent = currentPhrase;
+                                updateDisplay();
+                            }
+                        }
+                    }
+                };
+
+                // Click handler for positioning cursor
+                const typedDiv = document.getElementById('typed-text');
+                typedDiv.onclick = (e) => {
+                    // Find the clicked position based on spans
+                    const clickedElement = e.target;
+                    if (clickedElement.hasAttribute('data-pos')) {
+                        const pos = parseInt(clickedElement.getAttribute('data-pos'));
+                        cursorPosition = pos;
+                        updateDisplay();
+                    } else {
+                        // Clicked on the div itself, move cursor to end
+                        cursorPosition = typedText.length;
+                        updateDisplay();
+                    }
+                };
+
+                document.addEventListener('keydown', keyHandler);
+                updateDisplay(); // Initial display
+            },
+
+            showLunchGame(screen) {
+                // All possible foods
+                const allFoods = [
+                    { emoji: '🥬', name: 'Kimchi', tag: 'kimchi' },
+                    { emoji: '🍞', name: 'Bread', tag: 'bread' },
+                    { emoji: '🧀', name: 'Cheese', tag: 'cheese' },
+                    { emoji: '🥓', name: 'Bacon', tag: 'bacon' },
+                    { emoji: '🍫', name: 'Chocolate', tag: 'chocolate' },
+                    { emoji: '🌶️', name: 'Peppers', tag: 'peppers' },
+                    { emoji: '🥜', name: 'Peanut Butter', tag: 'peanutbutter' },
+                    { emoji: '🍌', name: 'Banana', tag: 'banana' },
+                    { emoji: '🐟', name: 'Fish', tag: 'fish' },
+                    { emoji: '🍦', name: 'Ice Cream', tag: 'icecream' },
+                    { emoji: '🥒', name: 'Pickles', tag: 'pickles' },
+                    { emoji: '🍋', name: 'Lemon', tag: 'lemon' },
+                    { emoji: '🥩', name: 'Steak', tag: 'steak' },
+                    { emoji: '🍓', name: 'Strawberry', tag: 'strawberry' },
+                    { emoji: '🧄', name: 'Garlic', tag: 'garlic' },
+                    { emoji: '🍪', name: 'Cookies', tag: 'cookies' }
+                ];
+
+                // Randomly select 9 foods for this round
+                const shuffled = [...allFoods].sort(() => Math.random() - 0.5);
+                const foods = shuffled.slice(0, 9);
+
+                let selected = [];
+                const startTime = Date.now();
+
+                screen.innerHTML = `
+                    <div class="game-title">🥪 Lunch Combo Creator</div>
+                    <div class="game-instruction">Create a weird food combo! Select 3 items. (Click again to unselect)</div>
+                    <div style="font-size: 20px; margin-bottom: 15px;">Time: <span id="lunch-timer">0.0</span>s | Selected: <span id="selected-count">0</span>/3</div>
+                    <div id="food-grid"></div>
+                    <div id="selected-combo"></div>
+                    <button class="btn" onclick="game.finishLunch()" style="margin-top: 20px;">Make Combo</button>
+                `;
+
+                // Update timer
+                const timerInterval = setInterval(() => {
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    const timerEl = document.getElementById('lunch-timer');
+                    if (timerEl) {
+                        timerEl.textContent = elapsed;
+                    } else {
+                        clearInterval(timerInterval);
+                    }
+                }, 100);
+
+                window.lunchTimerInterval = timerInterval;
+                window.lunchStartTime = startTime;
+
+                const updateComboDisplay = () => {
+                    const combo = selected.map(i => foods[i].emoji).join(' + ');
+                    document.getElementById('selected-combo').textContent = combo || 'Select ingredients...';
+                    document.getElementById('selected-count').textContent = selected.length;
+                };
+
+                const grid = document.getElementById('food-grid');
+                foods.forEach((food, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'food-item';
+                    item.innerHTML = `${food.emoji}<div class="food-label">${food.name}</div>`;
+                    item.onclick = () => {
+                        if (selected.includes(idx)) {
+                            // Unselect
+                            selected = selected.filter(i => i !== idx);
+                            item.classList.remove('selected');
+                        } else if (selected.length < 3) {
+                            // Select
+                            selected.push(idx);
+                            item.classList.add('selected');
+                        }
+                        updateComboDisplay();
+                    };
+                    grid.appendChild(item);
+                });
+
+                updateComboDisplay();
+
+                window.finishLunchFoods = foods;
+                window.finishLunchSelected = selected;
+            },
+
+            finishLunch() {
+                const foods = window.finishLunchFoods;
+                const selected = window.finishLunchSelected;
+
+                if (selected.length !== 3) {
+                    alert('Select exactly 3 items!');
+                    return;
+                }
+
+                clearInterval(window.lunchTimerInterval);
+                const finalTime = ((Date.now() - window.lunchStartTime) / 1000).toFixed(1);
+
+                // Helper function to calculate weirdness for any combo
+                const calculateWeirdness = (combo) => {
+                    const tags = combo.map(i => foods[i].tag);
+                    let score = 100; // Base amount
+
+                    // Weird combo rules
+                    const rules = [
+                        { combo: ['peanutbutter', 'banana'], score: 50 },
+                        { combo: ['kimchi', 'chocolate'], score: 100 },
+                        { combo: ['kimchi', 'peanutbutter'], score: 100 },
+                        { combo: ['fish', 'chocolate'], score: 120 },
+                        { combo: ['fish', 'icecream'], score: 110 },
+                        { combo: ['peppers', 'chocolate'], score: 80 },
+                        { combo: ['peppers', 'banana'], score: 80 },
+                        { combo: ['peppers', 'icecream'], score: 85 },
+                        { combo: ['kimchi', 'fish'], score: 60 },
+                        { combo: ['kimchi', 'peppers'], score: 90 },
+                        { combo: ['pickles', 'icecream'], score: 95 },
+                        { combo: ['pickles', 'chocolate'], score: 105 },
+                        { combo: ['lemon', 'fish'], score: 40 }, // Actually normal
+                        { combo: ['garlic', 'icecream'], score: 110 },
+                        { combo: ['garlic', 'strawberry'], score: 90 },
+                        { combo: ['cookies', 'fish'], score: 85 }
+                    ];
+
+                    rules.forEach(rule => {
+                        if (rule.combo.every(tag => tags.includes(tag))) {
+                            score += rule.score;
+                        }
+                    });
+
+                    return score;
+                };
+
+                // Calculate player's weirdness
+                let weirdness = calculateWeirdness(selected);
+                const randomBonus = Math.floor(Math.random() * 51);
+                weirdness += randomBonus;
+
+                // Find the best possible combo from available foods
+                let maxPossible = 0;
+                let bestComboIndices = [];
+
+                // Try all combinations of 3 foods
+                for (let i = 0; i < foods.length; i++) {
+                    for (let j = i + 1; j < foods.length; j++) {
+                        for (let k = j + 1; k < foods.length; k++) {
+                            const score = calculateWeirdness([i, j, k]) + 50; // +50 for max random
+                            if (score > maxPossible) {
+                                maxPossible = score;
+                                bestComboIndices = [i, j, k];
+                            }
+                        }
+                    }
+                }
+
+                const bestCombo = bestComboIndices.map(i => `${foods[i].emoji} ${foods[i].name}`).join(' + ');
+
+                this.addEarnings('Lunch Food Combo Creation', weirdness);
+
+                const screen = document.getElementById('game-screen');
+                screen.innerHTML = `
+                    <div class="game-title">Delicious! 🤢</div>
+                    <div class="game-instruction" style="font-size: 48px;">${selected.map(i => foods[i].emoji).join(' + ')}</div>
+                    <div class="game-instruction">
+                        Completed in ${finalTime}s!<br>
+                        Weirdness Level: ${weirdness > 250 ? 'EXTREME' : weirdness > 180 ? 'Very High' : weirdness > 140 ? 'High' : 'Moderate'}<br>
+                        You earned $${weirdness} from your weird combo!
+                        ${weirdness < maxPossible ? `<br><br><span style="color: #FFD700;">💡 Max possible: $${maxPossible} (${bestCombo})</span>` : '<br><br><span style="color: #FFD700;">🏆 You found the weirdest combo!</span>'}
+                    </div>
+                    <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                `;
+            },
+
+            showSubwayGame(screen) {
+                screen.innerHTML = `
+                    <div class="game-title">🚇 Subway Ball Hunt</div>
+                    <div class="game-instruction">Find all the hidden balls! Click them quickly!</div>
+                    <canvas id="canvas" width="900" height="500"></canvas>
+                    <div style="margin-top: 20px; font-size: 24px;">
+                        Elapsed: <span id="subway-timer">0.0</span>s |
+                        Balls Found: <span id="eggs-found">0</span> / 5 |
+                        Time Left: <span id="time-left">30</span>s
+                    </div>
+                    <button class="btn" style="background: #666; margin-top: 10px;" onclick="game.giveUpSubway()">Give Up</button>
+                `;
+
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+
+                let eggsFound = 0;
+                let timeLeft = 30;
+                let eggs = [];
+                let gameActive = true;
+                const startTime = Date.now();
+                window.subwayTimer = null;
+                window.subwayEggs = null;
+
+                // Dog positions
+                const dogs = [
+                    { x: 650, y: 350, name: 'King' },
+                    { x: 200, y: 360, name: 'Max' },
+                    { x: 450, y: 355, name: 'Buddy' }
+                ];
+
+                // Always place one ball under King's butt
+                eggs.push({
+                    x: dogs[0].x + 40,
+                    y: dogs[0].y + 45,
+                    found: false,
+                    size: 6,
+                    underDog: true
+                });
+
+                // Generate 4 more balls with slightly larger sizes (easier to find)
+                for (let i = 0; i < 4; i++) {
+                    eggs.push({
+                        x: 50 + Math.random() * 800,
+                        y: 50 + Math.random() * 400,
+                        found: false,
+                        size: 5 + Math.random() * 4,
+                        underDog: false
+                    });
+                }
+
+                window.subwayEggs = eggs;
+
+                const draw = () => {
+                    // Modern subway interior background
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.fillRect(0, 0, 900, 500);
+
+                    // Subway car floor
+                    ctx.fillStyle = '#34495e';
+                    ctx.fillRect(0, 400, 900, 100);
+
+                    // Wall panels
+                    ctx.fillStyle = '#ecf0f1';
+                    ctx.fillRect(50, 50, 800, 350);
+
+                    // Draw balls FIRST (before everything else so they're hidden)
+                    eggs.forEach(egg => {
+                        if (!egg.found) {
+                            // Random ball colors
+                            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#e91e63', '#9b59b6'];
+                            ctx.fillStyle = colors[Math.floor(egg.x + egg.y) % colors.length];
+                            ctx.beginPath();
+                            ctx.arc(egg.x, egg.y, egg.size, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.strokeStyle = '#000';
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    });
+
+                    // Windows - modern rounded style
+                    for (let i = 0; i < 4; i++) {
+                        // Window background (sky)
+                        ctx.fillStyle = '#87CEEB';
+                        ctx.fillRect(100 + i * 180, 80, 140, 100);
+
+                        // Cityscape silhouette
+                        ctx.fillStyle = '#7f8c8d';
+                        ctx.fillRect(110 + i * 180, 140, 30, 30);
+                        ctx.fillRect(145 + i * 180, 120, 40, 50);
+                        ctx.fillRect(190 + i * 180, 135, 35, 35);
+
+                        // Window frame
+                        ctx.strokeStyle = '#95a5a6';
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(100 + i * 180, 80, 140, 100);
+                    }
+
+                    // Modern seats with rounded edges
+                    const seatColor = '#e67e22';
+                    for (let i = 0; i < 4; i++) {
+                        ctx.fillStyle = seatColor;
+                        // Seat cushion
+                        ctx.fillRect(80 + i * 200, 360, 140, 40);
+                        // Seat back
+                        ctx.fillRect(80 + i * 200, 340, 140, 20);
+                    }
+
+                    // Simplified people silhouettes
+                    const people = [
+                        { x: 160, y: 280, color: '#3498db' },
+                        { x: 380, y: 270, color: '#e74c3c' },
+                        { x: 580, y: 275, color: '#2ecc71' }
+                    ];
+
+                    people.forEach(person => {
+                        // Head
+                        ctx.fillStyle = '#f4d0a1';
+                        ctx.beginPath();
+                        ctx.arc(person.x, person.y, 18, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Body
+                        ctx.fillStyle = person.color;
+                        ctx.fillRect(person.x - 20, person.y + 18, 40, 70);
+                        // Legs
+                        ctx.fillRect(person.x - 15, person.y + 88, 13, 35);
+                        ctx.fillRect(person.x + 2, person.y + 88, 13, 35);
+                    });
+
+                    // Dogs with cleaner design
+                    dogs.forEach((dog, idx) => {
+                        const colors = ['#8B4513', '#D2691E', '#A0522D'];
+                        ctx.fillStyle = colors[idx];
+
+                        // Body (rounded)
+                        ctx.beginPath();
+                        ctx.ellipse(dog.x + 40, dog.y + 25, 40, 25, 0, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Head
+                        ctx.beginPath();
+                        ctx.arc(dog.x + 30, dog.y, 20, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Ears
+                        ctx.fillRect(dog.x + 18, dog.y - 8, 8, 15);
+                        ctx.fillRect(dog.x + 34, dog.y - 8, 8, 15);
+
+                        // Legs
+                        ctx.fillRect(dog.x + 15, dog.y + 45, 12, 25);
+                        ctx.fillRect(dog.x + 55, dog.y + 45, 12, 25);
+
+                        // Eyes
+                        ctx.fillStyle = '#000';
+                        ctx.beginPath();
+                        ctx.arc(dog.x + 25, dog.y - 3, 3, 0, Math.PI * 2);
+                        ctx.arc(dog.x + 35, dog.y - 3, 3, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Name tag
+                        ctx.fillStyle = '#FFD700';
+                        ctx.font = 'bold 14px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(dog.name, dog.x + 40, dog.y + 30);
+                    });
+
+                    // Modern bags/backpacks
+                    ctx.fillStyle = '#34495e';
+                    ctx.fillRect(240, 370, 30, 30);
+                    ctx.fillStyle = '#c0392b';
+                    ctx.fillRect(750, 365, 35, 35);
+
+                    // Vertical poles - cleaner
+                    ctx.fillStyle = '#bdc3c7';
+                    ctx.fillRect(300, 50, 12, 350);
+                    ctx.fillRect(600, 50, 12, 350);
+
+                    // Overhead ads - minimalist
+                    ctx.fillStyle = '#f39c12';
+                    ctx.fillRect(120, 200, 100, 60);
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.fillText('SALE!', 160, 235);
+
+                    ctx.fillStyle = '#9b59b6';
+                    ctx.fillRect(680, 200, 100, 60);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText('NYC', 720, 235);
+                };
+
+                canvas.onclick = (e) => {
+                    if (!gameActive) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    eggs.forEach(egg => {
+                        if (!egg.found) {
+                            const dist = Math.sqrt((x - egg.x) ** 2 + (y - egg.y) ** 2);
+                            if (dist < egg.size * 1.5) {
+                                egg.found = true;
+                                eggsFound++;
+                                document.getElementById('eggs-found').textContent = eggsFound;
+                                draw();
+                            }
+                        }
+                    });
+                };
+
+                const timer = setInterval(() => {
+                    if (!window.subwayState || !window.subwayState.gameActive) {
+                        clearInterval(timer);
+                        return;
+                    }
+
+                    timeLeft--;
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    const timeLeftEl = document.getElementById('time-left');
+                    const timerEl = document.getElementById('subway-timer');
+                    if (timeLeftEl) timeLeftEl.textContent = timeLeft;
+                    if (timerEl) timerEl.textContent = elapsed;
+
+                    if (timeLeft <= 0 || eggsFound === eggs.length) {
+                        window.subwayState.gameActive = false;
+                        clearInterval(timer);
+                        canvas.onclick = null;
+                        const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                        const earnings = eggsFound * 200;
+                        game.addEarnings('Subway Ball Finding Service', earnings);
+
+                        // If player didn't find all balls, show where they were
+                        if (eggsFound < eggs.length) {
+                            eggs.forEach(egg => {
+                                if (!egg.found) {
+                                    ctx.strokeStyle = '#FFFF00';
+                                    ctx.lineWidth = 4;
+                                    ctx.beginPath();
+                                    ctx.arc(egg.x, egg.y, egg.size + 10, 0, Math.PI * 2);
+                                    ctx.stroke();
+
+                                    ctx.fillStyle = '#FFFF00';
+                                    ctx.beginPath();
+                                    ctx.arc(egg.x, egg.y, egg.size, 0, Math.PI * 2);
+                                    ctx.fill();
+                                }
+                            });
+
+                            setTimeout(() => {
+                                screen.innerHTML = `
+                                    <div class="game-title">Ball Hunt Complete!</div>
+                                    <div class="game-instruction">
+                                        Completed in ${finalTime}s!<br>
+                                        You found ${eggsFound}/5 balls and earned $${earnings}!<br>
+                                        <span style="color: #FFD700;">The missed balls were highlighted in yellow!</span>
+                                    </div>
+                                    <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                                `;
+                            }, 3000);
+                        } else {
+                            setTimeout(() => {
+                                screen.innerHTML = `
+                                    <div class="game-title">Ball Hunt Complete!</div>
+                                    <div class="game-instruction">
+                                        Completed in ${finalTime}s!<br>
+                                        You found ${eggsFound}/5 balls and earned $${earnings}!
+                                        ${eggsFound === 5 ? '<br><span style="color: #FFD700;">🏆 Perfect! You found them all, even the one under King!</span>' : ''}
+                                    </div>
+                                    <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                                `;
+                            }, 500);
+                        }
+                    }
+                }, 1000);
+
+                window.subwayTimer = timer;
+                window.subwayState = { gameActive: true, ctx, draw, eggs, startTime, canvas };
+
+                draw();
+            },
+
+            giveUpSubway() {
+                if (!window.subwayState || !window.subwayState.gameActive) return;
+
+                // Stop the game
+                window.subwayState.gameActive = false;
+                if (window.subwayTimer) clearInterval(window.subwayTimer);
+
+                const { ctx, eggs, startTime, canvas } = window.subwayState;
+                canvas.onclick = null; // Disable clicking
+
+                const eggsFound = eggs.filter(e => e.found).length;
+                const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                const earnings = eggsFound * 200;
+
+                // Show where all unfound balls were
+                eggs.forEach(egg => {
+                    if (!egg.found) {
+                        ctx.strokeStyle = '#FFFF00';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(egg.x, egg.y, egg.size + 10, 0, Math.PI * 2);
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#FFFF00';
+                        ctx.beginPath();
+                        ctx.arc(egg.x, egg.y, egg.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                this.addEarnings('Subway Ball Finding Service', earnings);
+
+                const screen = document.getElementById('game-screen');
+                setTimeout(() => {
+                    screen.innerHTML = `
+                        <div class="game-title">Ball Hunt - Given Up!</div>
+                        <div class="game-instruction">
+                            Time: ${finalTime}s<br>
+                            You found ${eggsFound}/5 balls and earned $${earnings}!<br>
+                            <span style="color: #FFD700;">The missed balls were highlighted in yellow!</span>
+                        </div>
+                        <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                    `;
+                }, 3000);
+            },
+
+            showIceCreamMaze(screen) {
+                screen.innerHTML = `
+                    <div class="game-title">🍦 Ice Cream Maze Challenge</div>
+                    <div class="game-instruction">Get Sean's ice cream to the microwave before it melts! Use WASD to move.</div>
+                    <canvas id="canvas" width="800" height="600"></canvas>
+                    <div style="margin-top: 20px; font-size: 24px;">
+                        Elapsed: <span id="maze-elapsed">0.0</span>s |
+                        Time Left: <span id="maze-time">60</span>s |
+                        Ice Cream: <span id="ice-cream-health">100</span>%
+                    </div>
+                `;
+
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const tileSize = 40;
+                const cols = 20;
+                const rows = 15;
+
+                // 0 = wall, 1 = path, 2 = microwave
+                const maze = [
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                    [0,1,1,0,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0],
+                    [0,1,0,0,1,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0],
+                    [0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,0],
+                    [0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0],
+                    [0,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0],
+                    [0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0],
+                    [0,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0],
+                    [0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,1,0],
+                    [0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1,0,1,0],
+                    [0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,1,0],
+                    [0,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,0],
+                    [0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0],
+                    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                ];
+
+                let playerX = 1;
+                let playerY = 1;
+                let timeLeft = 60;
+                let iceCreamHealth = 100;
+                let gameActive = true;
+                const startTime = Date.now();
+
+                const keyState = {};
+                const keyHandler = (e) => {
+                    if (!gameActive) return;
+
+                    let newX = playerX;
+                    let newY = playerY;
+
+                    if (e.key === 'w' || e.key === 'W') newY--;
+                    else if (e.key === 's' || e.key === 'S') newY++;
+                    else if (e.key === 'a' || e.key === 'A') newX--;
+                    else if (e.key === 'd' || e.key === 'D') newX++;
+
+                    // Check if move is valid
+                    if (newX >= 0 && newX < cols && newY >= 0 && newY < rows) {
+                        if (maze[newY][newX] !== 0) {
+                            playerX = newX;
+                            playerY = newY;
+
+                            // Check if reached microwave
+                            if (maze[newY][newX] === 2) {
+                                gameActive = false;
+                                clearInterval(timer);
+                                document.removeEventListener('keydown', keyHandler);
+
+                                const timeBonus = timeLeft * 20;
+                                const healthBonus = iceCreamHealth * 5;
+                                const totalEarnings = 500 + timeBonus + healthBonus;
+
+                                game.addEarnings('Ice Cream Delivery Service', totalEarnings);
+
+                                setTimeout(() => {
+                                    screen.innerHTML = `
+                                        <div class="game-title">Ice Cream Saved! 🎉</div>
+                                        <div class="game-instruction">
+                                            You made it to the microwave!<br>
+                                            Base: $500<br>
+                                            Time Bonus: $${timeBonus}<br>
+                                            Health Bonus: $${healthBonus}<br>
+                                            <strong>Total: $${totalEarnings}</strong>
+                                        </div>
+                                        <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                                    `;
+                                }, 500);
+                            }
+                        }
+                    }
+
+                    draw();
+                };
+
+                document.addEventListener('keydown', keyHandler);
+
+                const draw = () => {
+                    // Clear canvas
+                    ctx.fillStyle = '#1a1a2e';
+                    ctx.fillRect(0, 0, 800, 600);
+
+                    // Draw maze
+                    for (let row = 0; row < rows; row++) {
+                        for (let col = 0; col < cols; col++) {
+                            const x = col * tileSize;
+                            const y = row * tileSize;
+
+                            if (maze[row][col] === 0) {
+                                // Wall
+                                ctx.fillStyle = '#2c3e50';
+                                ctx.fillRect(x, y, tileSize, tileSize);
+                                ctx.strokeStyle = '#34495e';
+                                ctx.strokeRect(x, y, tileSize, tileSize);
+                            } else if (maze[row][col] === 1) {
+                                // Path
+                                ctx.fillStyle = '#ecf0f1';
+                                ctx.fillRect(x, y, tileSize, tileSize);
+                            } else if (maze[row][col] === 2) {
+                                // Microwave
+                                ctx.fillStyle = '#95a5a6';
+                                ctx.fillRect(x, y, tileSize, tileSize);
+                                ctx.fillStyle = '#34495e';
+                                ctx.fillRect(x + 5, y + 8, 30, 20);
+                                ctx.fillStyle = '#3498db';
+                                ctx.fillRect(x + 8, y + 11, 10, 10);
+                                ctx.fillStyle = '#000';
+                                ctx.font = '10px Arial';
+                                ctx.fillText('MW', x + 12, y + 35);
+                            }
+                        }
+                    }
+
+                    // Draw Sean with ice cream bowl
+                    const px = playerX * tileSize;
+                    const py = playerY * tileSize;
+
+                    // Sean's head
+                    ctx.fillStyle = '#FFDAB9';
+                    ctx.beginPath();
+                    ctx.arc(px + 20, py + 15, 12, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Sean's body
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillRect(px + 10, py + 25, 20, 12);
+
+                    // Ice cream bowl
+                    const healthColor = iceCreamHealth > 50 ? '#FFD700' : iceCreamHealth > 25 ? '#FFA500' : '#FF6347';
+                    ctx.fillStyle = healthColor;
+                    ctx.beginPath();
+                    ctx.arc(px + 20, py + 30, 8, 0, Math.PI);
+                    ctx.fill();
+
+                    // Ice cream scoop
+                    ctx.fillStyle = iceCreamHealth > 50 ? '#FFF' : '#DDD';
+                    ctx.beginPath();
+                    ctx.arc(px + 20, py + 23, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                };
+
+                const timer = setInterval(() => {
+                    if (!gameActive) {
+                        clearInterval(timer);
+                        return;
+                    }
+
+                    timeLeft--;
+                    iceCreamHealth = Math.max(0, iceCreamHealth - 1.67); // Melts over 60 seconds
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+                    document.getElementById('maze-time').textContent = timeLeft;
+                    document.getElementById('maze-elapsed').textContent = elapsed;
+                    document.getElementById('ice-cream-health').textContent = Math.floor(iceCreamHealth);
+
+                    if (timeLeft <= 0 || iceCreamHealth <= 0) {
+                        gameActive = false;
+                        clearInterval(timer);
+                        document.removeEventListener('keydown', keyHandler);
+
+                        game.addEarnings('Failed Ice Cream Delivery', 50);
+
+                        setTimeout(() => {
+                            screen.innerHTML = `
+                                <div class="game-title">Ice Cream Melted! 😭</div>
+                                <div class="game-instruction">
+                                    You didn't make it in time!<br>
+                                    Consolation Prize: $50
+                                </div>
+                                <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                            `;
+                        }, 500);
+                    }
+
+                    draw();
+                }, 1000);
+
+                draw();
+            },
+
+            showRhythmGame(screen) {
+                screen.innerHTML = `
+                    <div class="game-title">☕ Coffee Rhythm Game</div>
+                    <div class="game-instruction">Press SPACE or CLICK when the indicator is in the green zone!</div>
+                    <canvas id="canvas" width="800" height="300"></canvas>
+                    <div style="margin-top: 20px; font-size: 24px;">
+                        Time: <span id="rhythm-timer">0.0</span>s |
+                        Score: <span id="rhythm-score">0</span>
+                    </div>
+                `;
+
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                let position = 50;
+                let direction = 1;
+                let score = 0;
+                let rounds = 5;
+                const startTime = Date.now();
+                let lastTime = Date.now();
+                let gameActive = true;
+                let greenZoneX = 350; // Starting position of green zone
+                const greenZoneWidth = 60; // Smaller zone
+
+                const attemptHit = () => {
+                    if (!gameActive) return;
+
+                    // Check if red bar (50px wide) is touching green zone at all
+                    const redBarLeft = position;
+                    const redBarRight = position + 50;
+                    const greenBarLeft = greenZoneX;
+                    const greenBarRight = greenZoneX + greenZoneWidth;
+
+                    // Bars overlap if red bar's right edge is past green bar's left AND red bar's left edge is before green bar's right
+                    if (redBarRight >= greenBarLeft && redBarLeft <= greenBarRight) {
+                        score += 50;
+                    }
+                    rounds--;
+                    document.getElementById('rhythm-score').textContent = score;
+
+                    // Move green zone to a random position after each press
+                    greenZoneX = 50 + Math.random() * (640 - greenZoneWidth);
+
+                    if (rounds <= 0) {
+                        gameActive = false;
+                        document.removeEventListener('keydown', keyHandler);
+                        canvas.removeEventListener('click', clickHandler);
+                        const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                        const earnings = score;
+                        game.addEarnings('Coffee Making Gig', earnings);
+
+                        setTimeout(() => {
+                            screen.innerHTML = `
+                                <div class="game-title">Coffee Complete!</div>
+                                <div class="game-instruction">Completed in ${finalTime}s!<br>You earned $${earnings}!</div>
+                                <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                            `;
+                        }, 500);
+                    }
+                };
+
+                const keyHandler = (e) => {
+                    if (e.code === 'Space' && gameActive) {
+                        e.preventDefault();
+                        attemptHit();
+                    }
+                };
+
+                const clickHandler = (e) => {
+                    attemptHit();
+                };
+
+                document.addEventListener('keydown', keyHandler);
+                canvas.addEventListener('click', clickHandler);
+
+                const animate = () => {
+                    if (!gameActive) return;
+
+                    const currentTime = Date.now();
+                    const deltaTime = (currentTime - lastTime) / 16.67; // Normalize to 60fps
+                    lastTime = currentTime;
+
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(0, 0, 800, 300);
+
+                    // Bar background
+                    ctx.fillStyle = '#DDD';
+                    ctx.fillRect(50, 100, 700, 100);
+
+                    // Green zone (drawn on top of bar) - smaller and moves
+                    ctx.fillStyle = '#90EE90';
+                    ctx.fillRect(greenZoneX, 100, greenZoneWidth, 100);
+
+                    // Bar outline
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(50, 100, 700, 100);
+
+                    // Green zone outline to make it more visible
+                    ctx.strokeStyle = '#228B22';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(greenZoneX, 100, greenZoneWidth, 100);
+
+                    // Indicator - smooth movement with delta time (faster speed)
+                    position += direction * 8 * deltaTime;
+                    if (position >= 700) {
+                        position = 700;
+                        direction = -1;
+                    } else if (position <= 50) {
+                        position = 50;
+                        direction = 1;
+                    }
+
+                    ctx.fillStyle = '#FF0000';
+                    ctx.fillRect(position, 100, 50, 100);
+
+                    ctx.fillStyle = '#000';
+                    ctx.font = '24px Arial';
+                    ctx.fillText(`Rounds Left: ${rounds}`, 350, 250);
+
+                    // Update timer
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    const timerEl = document.getElementById('rhythm-timer');
+                    if (timerEl) {
+                        timerEl.textContent = elapsed;
+                    }
+
+                    requestAnimationFrame(animate);
+                };
+
+                animate();
+            },
+
+            showDatingGame(screen) {
+                // Multiple opening line sets to vary day by day
+                const openingLineSets = [
+                    [
+                        { text: "Is your name WiFi? Because I'm feeling a connection.", score: 30 },
+                        { text: "Do you have a map? I keep getting lost in your eyes.", score: 50 },
+                        { text: "Are you a tax deduction? Because you're decreasing my taxable income.", score: 10 },
+                        { text: "Hi, I'm Sean. Can I buy you a coffee?", score: 70 }
+                    ],
+                    [
+                        { text: "If I could rearrange the alphabet, I'd put U and I together.", score: 35 },
+                        { text: "I took a logic class, and you're clearly the conclusion to my premises.", score: 65 },
+                        { text: "Are you a balance sheet? Because you've got assets I want to analyze.", score: 15 },
+                        { text: "Excuse me, but I think you dropped something: my jaw.", score: 55 }
+                    ],
+                    [
+                        { text: "Do you believe in love at first sight, or should I walk by again?", score: 40 },
+                        { text: "In my logic class, we learned modus ponens. You're beautiful, therefore I'm nervous.", score: 70 },
+                        { text: "Can I expense you as a business meal?", score: 5 },
+                        { text: "Hi, I noticed you from across the room and had to come say hi.", score: 75 }
+                    ],
+                    [
+                        { text: "Are you a parking ticket? Because you've got FINE written all over you.", score: 25 },
+                        { text: "My logic professor said 'if P then Q.' You're P, and Q is me asking for your number.", score: 60 },
+                        { text: "Do you have a 1040 form? Because I'm filing you under 'stunning.'", score: 20 },
+                        { text: "I'm terrible at pickup lines. Want to help me get better over coffee?", score: 80 }
+                    ]
+                ];
+
+                const randomSet = openingLineSets[Math.floor(Math.random() * openingLineSets.length)];
+
+                const scenarios = [
+                    {
+                        text: "You see a beautiful woman at the coffee shop. What do you say?",
+                        options: randomSet
+                    },
+                    {
+                        text: "She laughs! The conversation is going well. What next?",
+                        options: [
+                            { text: "Tell her about your tax filing strategies.", score: 20 },
+                            { text: "Ask her about her interests and hobbies.", score: 80 },
+                            { text: "Show her your investment portfolio.", score: 40 },
+                            { text: "Explain syllogisms from your logic class.", score: 55 }
+                        ]
+                    },
+                    {
+                        text: "She seems interested! Time to ask her out.",
+                        options: [
+                            { text: "Would you like to file joint taxes with me?", score: 10 },
+                            { text: "Want to grab dinner tonight?", score: 90 },
+                            { text: "Can I get your Social Security number?", score: 5 },
+                            { text: "Logically speaking, we should have dinner together.", score: 70 }
+                        ]
+                    }
+                ];
+
+                let currentScenario = 0;
+                let totalScore = 0;
+
+                const showScenario = () => {
+                    if (currentScenario >= scenarios.length) {
+                        const earnings = Math.floor(totalScore * 2);
+                        game.addEarnings('Dating Confidence Coaching', earnings);
+
+                        screen.innerHTML = `
+                            <div class="game-title">Date Secured! 💕</div>
+                            <div class="game-instruction">Your charm earned you $${earnings}!</div>
+                            <button class="btn" onclick="game.nextEvent()">Go to Dinner</button>
+                        `;
+                        return;
+                    }
+
+                    const scenario = scenarios[currentScenario];
+                    screen.innerHTML = `
+                        <div class="game-title">💑 Dating Game</div>
+                        <div class="game-instruction">${scenario.text}</div>
+                        <div id="dialogue-container"></div>
+                    `;
+
+                    const container = document.getElementById('dialogue-container');
+                    scenario.options.forEach(option => {
+                        const btn = document.createElement('div');
+                        btn.className = 'dialogue-option';
+                        btn.textContent = option.text;
+                        btn.onclick = () => {
+                            totalScore += option.score;
+                            currentScenario++;
+                            showScenario();
+                        };
+                        container.appendChild(btn);
+                    });
+                };
+
+                showScenario();
+            },
+
+            showDinnerGame(screen) {
+                const items = [
+                    { name: '🥗 Caesar Salad', desc: 'Crisp romaine with parmesan', price: 14 },
+                    { name: '🍝 Pasta Carbonara', desc: 'Creamy sauce with pancetta', price: 28 },
+                    { name: '🥩 Ribeye Steak', desc: '12oz USDA Prime with sides', price: 52 },
+                    { name: '🐟 Grilled Salmon', desc: 'Atlantic salmon with vegetables', price: 38 },
+                    { name: '🍫 Chocolate Lava Cake', desc: 'Warm cake with ice cream', price: 14 },
+                    { name: '🍷 Red Wine', desc: 'House Cabernet Sauvignon', price: 22 },
+                    { name: '🥂 Champagne', desc: 'Celebratory bubbly', price: 45 },
+                    { name: '☕ Espresso', desc: 'Double shot', price: 6 }
+                ];
+
+                let total = 0;
+                let orderCount = 0;
+
+                screen.innerHTML = `
+                    <div class="game-title">🍽️ Dinner Date</div>
+                    <div class="game-instruction">Order items for your date! The more you order, the more impressed she'll be. (You're paying)</div>
+                    <div style="font-size: 20px; margin-bottom: 15px;">Items Ordered: <span id="order-count">0</span> | Total: $<span id="dinner-total">0</span></div>
+                    <div id="dialogue-container" class="two-column"></div>
+                    <button class="btn" onclick="game.finishDinner()" style="margin-top: 20px;">Pay Bill</button>
+                `;
+
+                const container = document.getElementById('dialogue-container');
+                items.forEach(item => {
+                    const btn = document.createElement('div');
+                    btn.className = 'dialogue-option';
+                    btn.innerHTML = `
+                        <div style="font-weight: bold; font-size: 18px;">${item.name}</div>
+                        <div style="font-size: 14px; color: #bbb; margin: 5px 0;">${item.desc}</div>
+                        <div style="color: #FFD700; font-weight: bold;">$${item.price}</div>
+                    `;
+                    btn.onclick = () => {
+                        total += item.price;
+                        orderCount++;
+                        document.getElementById('dinner-total').textContent = total;
+                        document.getElementById('order-count').textContent = orderCount;
+                        btn.style.opacity = '0.5';
+                        btn.style.pointerEvents = 'none';
+                        btn.style.borderColor = '#2ecc71';
+                    };
+                    container.appendChild(btn);
+                });
+
+                window.dinnerTotal = () => total;
+            },
+
+            finishDinner() {
+                const total = window.dinnerTotal();
+                if (total === 0) {
+                    alert('You need to order something!');
+                    return;
+                }
+
+                this.addExpense('Dinner Date', total);
+                const earnings = Math.floor(total * 0.5); // Get some relationship capital
+                this.addEarnings('Date Went Well - Future Investment', earnings);
+
+                const screen = document.getElementById('game-screen');
+                screen.innerHTML = `
+                    <div class="game-title">Great Date! ❤️</div>
+                    <div class="game-instruction">You spent $${total} but earned $${earnings} in goodwill!</div>
+                    <button class="btn" onclick="game.nextEvent()">Continue Day</button>
+                `;
+            },
+
+            showTutoringGame(screen) {
+                screen.innerHTML = `
+                    <div class="game-title">🎓 Math Tutoring</div>
+                    <div class="game-instruction">Move with A/D or arrow keys to catch math concepts! Avoid red 67s!</div>
+                    <canvas id="canvas" width="800" height="500"></canvas>
+                    <div style="margin-top: 20px; font-size: 24px;">Time: <span id="tutor-time">15</span>s | Score: $<span id="concepts">0</span></div>
+                `;
+
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const concepts = ['∫', '∑', 'π', '√', '∞', 'θ', 'α', 'β', 'Δ', '∂'];
+                let playerX = 400;
+                let items = [];
+                let score = 0;
+                let gameTime = 15;
+                let gameActive = true;
+
+                const spawnItem = () => {
+                    if (!gameActive) return;
+
+                    // 20% chance to spawn a red 67
+                    const isBad = Math.random() < 0.2;
+
+                    items.push({
+                        x: Math.random() * 750,
+                        y: 0,
+                        symbol: isBad ? '67' : concepts[Math.floor(Math.random() * concepts.length)],
+                        speed: 2 + Math.random() * 3,
+                        isBad: isBad
+                    });
+                };
+
+                const keyState = {};
+                document.addEventListener('keydown', (e) => {
+                    keyState[e.key] = true;
+                });
+                document.addEventListener('keyup', (e) => {
+                    keyState[e.key] = false;
+                });
+
+                const spawner = setInterval(spawnItem, 800);
+
+                const timer = setInterval(() => {
+                    if (!gameActive) {
+                        clearInterval(timer);
+                        clearInterval(spawner);
+                        return;
+                    }
+
+                    gameTime--;
+                    document.getElementById('tutor-time').textContent = gameTime;
+
+                    if (gameTime <= 0) {
+                        gameActive = false;
+                        clearInterval(timer);
+                        clearInterval(spawner);
+                        const earnings = Math.max(0, score);
+                        game.addEarnings('Math Tutoring Session', earnings);
+
+                        setTimeout(() => {
+                            screen.innerHTML = `
+                                <div class="game-title">Tutoring Complete!</div>
+                                <div class="game-instruction">You earned $${earnings}!</div>
+                                <button class="btn" onclick="game.nextEvent()">End Day</button>
+                            `;
+                        }, 500);
+                    }
+                }, 1000);
+
+                const animate = () => {
+                    if (!gameActive) return;
+
+                    // Player movement - slower speed
+                    if (keyState['ArrowLeft'] || keyState['a'] || keyState['A']) playerX -= 5;
+                    if (keyState['ArrowRight'] || keyState['d'] || keyState['D']) playerX += 5;
+                    playerX = Math.max(50, Math.min(750, playerX));
+
+                    // Draw
+                    ctx.fillStyle = '#87CEEB';
+                    ctx.fillRect(0, 0, 800, 500);
+
+                    // Draw student (head open to catch concepts)
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(playerX, 450, 30, Math.PI, 0, true);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(playerX - 20, 450, 40, 40);
+
+                    // Move and draw falling concepts
+                    items = items.filter(item => {
+                        item.y += item.speed;
+
+                        // Check collision
+                        if (item.y > 420 && item.y < 460 && Math.abs(item.x - playerX) < 40) {
+                            if (item.isBad) {
+                                // Caught a bad item - lose money
+                                score -= 67;
+                            } else {
+                                // Caught a good item - gain money
+                                score += 100;
+                            }
+                            document.getElementById('concepts').textContent = score;
+                            return false;
+                        }
+
+                        if (item.y < 500) {
+                            // Draw item with appropriate color
+                            ctx.fillStyle = item.isBad ? '#FF0000' : '#000';
+                            ctx.font = '30px Arial';
+                            ctx.fillText(item.symbol, item.x, item.y);
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    requestAnimationFrame(animate);
+                };
+
+                animate();
+            },
+
+            showTaxGame(screen) {
+                if (this.dayEarnings.length === 0) {
+                    screen.innerHTML = `
+                        <div class="game-title">📋 Tax Filing</div>
+                        <div class="game-instruction">No income to report today!</div>
+                        <button class="btn" onclick="game.nextDay()">Start New Day</button>
+                    `;
+                    return;
+                }
+
+                screen.innerHTML = `
+                    <div class="game-title">📋 Tax Filing Time</div>
+                    <div class="game-instruction">Report your earnings to the IRS or risk jail!</div>
+                    <div id="receipt-container">
+                        <h2 style="text-align: center; margin-bottom: 20px;">DAILY RECEIPT</h2>
+                        <div id="receipt-items"></div>
+                        <div class="receipt-total">
+                            TOTAL EARNED: $<span id="total-earned">0</span>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="game.reportTaxes()">✅ Report to IRS</button>
+                    <button class="btn" style="background: #666;" onclick="game.skipTaxes()">❌ Skip (Risky!)</button>
+                `;
+
+                const itemsDiv = document.getElementById('receipt-items');
+                let total = 0;
+
+                this.dayEarnings.forEach(earning => {
+                    const line = document.createElement('div');
+                    line.className = 'receipt-line';
+                    line.innerHTML = `<span>${earning.source}</span><span>$${earning.amount}</span>`;
+                    itemsDiv.appendChild(line);
+                    total += earning.amount;
+                });
+
+                document.getElementById('total-earned').textContent = total;
+            },
+
+            reportTaxes() {
+                this.taxesReported = true;
+                const screen = document.getElementById('game-screen');
+                screen.innerHTML = `
+                    <div class="game-title">✅ Taxes Filed!</div>
+                    <div class="game-instruction">You're a law-abiding citizen! The IRS is pleased.</div>
+                    <button class="btn" onclick="game.showCityOptions()">Upgrade City/House</button>
+                    <button class="btn" style="background: #666;" onclick="game.nextDay()">Start New Day</button>
+                `;
+            },
+
+            skipTaxes() {
+                // Calculate total earnings for the day
+                let totalEarned = 0;
+                this.dayEarnings.forEach(earning => {
+                    if (earning.amount > 0) {
+                        totalEarned += earning.amount;
+                    }
+                });
+
+                // Chance of getting caught scales with earnings
+                // Base 10% + 1% per $100 earned (caps at 90%)
+                const catchChance = Math.min(0.9, 0.1 + (totalEarned / 10000));
+                const caught = Math.random() < catchChance;
+
+                if (caught) {
+                    this.warnings++;
+                    this.updateStats();
+
+                    if (this.warnings >= 3) {
+                        this.gameOver();
+                        return;
+                    }
+
+                    const screen = document.getElementById('game-screen');
+                    screen.innerHTML = `
+                        <div class="warning">⚠️ IRS WARNING ${this.warnings}/3 ⚠️</div>
+                        <div class="game-instruction">
+                            The IRS caught you trying to hide $${totalEarned}!<br>
+                            (${Math.floor(catchChance * 100)}% chance of getting caught)<br>
+                            One more strike and it's jail time!
+                        </div>
+                        <button class="btn" onclick="game.showCityOptions()">Continue (Nervously)</button>
+                    `;
+                } else {
+                    const screen = document.getElementById('game-screen');
+                    screen.innerHTML = `
+                        <div class="game-title">😅 You Got Away With It!</div>
+                        <div class="game-instruction">
+                            You avoided reporting $${totalEarned} and the IRS didn't notice!<br>
+                            (You had a ${Math.floor(catchChance * 100)}% chance of getting caught)<br>
+                            <span style="color: #ff6b6b;">But you're playing with fire...</span>
+                        </div>
+                        <button class="btn" onclick="game.showCityOptions()">Continue (Lucky)</button>
+                    `;
+                }
+            },
+
+            showCityOptions() {
+                const screen = document.getElementById('game-screen');
+                screen.innerHTML = `
+                    <div class="game-title">🏙️ City & House Upgrade</div>
+                    <div class="game-instruction">Move to a fancier city and buy a house!</div>
+                    <div id="city-select"></div>
+                    <button class="btn" style="background: #666; margin-top: 20px;" onclick="game.nextDay()">Stay in ${this.city}</button>
+                `;
+
+                const container = document.getElementById('city-select');
+                this.cities.forEach(city => {
+                    const card = document.createElement('div');
+                    card.className = 'city-card';
+
+                    const canAfford = this.money >= city.houseCost;
+                    if (!canAfford) card.classList.add('locked');
+
+                    card.innerHTML = `
+                        <div class="city-name">${city.name}</div>
+                        <div class="city-price">House: $${city.houseCost.toLocaleString()}</div>
+                        <div style="margin-top: 10px; font-size: 14px;">${canAfford ? '✅ Can Afford' : '🔒 Locked'}</div>
+                    `;
+
+                    if (canAfford) {
+                        card.onclick = () => {
+                            // Sell old house
+                            this.money += this.houseValue;
+                            this.assets -= this.houseValue;
+
+                            // Buy new house
+                            this.money -= city.houseCost;
+                            this.houseValue = city.houseCost;
+                            this.assets += city.houseCost;
+                            this.city = city.name;
+
+                            this.updateStats();
+                            this.updateBackground();
+                            this.nextDay();
+                        };
+                    }
+
+                    container.appendChild(card);
+                });
+            },
+
+            nextDay() {
+                this.currentEventIndex = 0;
+                this.dayEarnings = [];
+                this.setupDay();
+                this.showEvent();
+            },
+
+            gameOver() {
+                const screen = document.getElementById('game-screen');
+                screen.innerHTML = `
+                    <div class="game-over">🚔 GAME OVER 🚔</div>
+                    <div class="game-title">You've been arrested for tax evasion!</div>
+                    <div class="game-instruction">
+                        Final Score:<br>
+                        💰 Cash: $${this.money.toLocaleString()}<br>
+                        🏠 Assets: $${this.assets.toLocaleString()}<br>
+                        📊 Total: $${(this.money + this.assets).toLocaleString()}
+                    </div>
+                    <button class="btn" onclick="location.reload()">Play Again</button>
+                `;
+            },
+
+            addEarnings(source, amount) {
+                this.money += amount;
+                this.dayEarnings.push({ source, amount });
+                this.updateStats();
+            },
+
+            addExpense(source, amount) {
+                this.money -= amount;
+                this.dayEarnings.push({ source, amount: -amount });
+                this.updateStats();
+            },
+
+            updateStats() {
+                document.getElementById('money').textContent = this.money.toLocaleString();
+                document.getElementById('assets').textContent = this.assets.toLocaleString();
+                document.getElementById('city').textContent = this.city;
+                document.getElementById('warnings').textContent = this.warnings;
+                document.getElementById('total-money').textContent = (this.money + this.assets).toLocaleString();
+            }
+        };
+
+        window.game = game;
+        game.init();
+    </script>
+</body>
+</html>
